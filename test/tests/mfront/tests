@@ -1,0 +1,21 @@
+[Tests]
+  design = 'MFront.md'
+  [oedometer_dilation_0]
+    type = 'Exodiff'
+    input = 'mfront_oedometer_0.i'
+    exodiff = 'mfront_oedometer_0.e'
+    requirement = 'Plastic oedometer - non associative Drucker-Prager - dilation angle=0.'
+  []
+  [oedometer_dilation_10]
+    type = 'Exodiff'
+    input = 'mfront_oedometer_10.i'
+    exodiff = 'mfront_oedometer_10.e'
+    requirement = 'Plastic oedometer - non associative Drucker-Prager - dilation angle=10.'
+  []
+  [oedometer_dilation_20]
+    type = 'Exodiff'
+    input = 'mfront_oedometer_20.i'
+    exodiff = 'mfront_oedometer_20.e'
+    requirement = 'Plastic oedometer - non associative Drucker-Prager - dilation angle=20(same as friction angle).'
+  []
+[]

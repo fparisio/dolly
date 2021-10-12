@@ -1,12 +1,14 @@
 # test: oedometer
-# material behaviour: non associative Drucker-Prager perfect plasticity
+# material behaviour:
+# non associative Drucker-Prager perfect plasticity
+# dilation = 20 (as for the friction)
 
 [Mesh]
   type = GeneratedMesh
   dim = 3
-  nx = 10
-  ny = 10
-  nz = 10
+  nx = 2
+  ny = 2
+  nz = 2
   xmin = 0
   xmax = 1
   ymin = 0
@@ -62,7 +64,7 @@
     poisson_ratio = 0.125
     cohesion = 1
     friction_angle = 20
-    dilation_angle = 0
+    dilation_angle = 20
   []
 []
 
@@ -124,31 +126,31 @@
     variable = disp_x
     boundary = right
     outputs = gnuplot
-    execute_on = 'TIMESTEP_END'
+    execute_on = 'INITIAL TIMESTEP_END'
   [../]
   [./S_xx]
     type = ElementAverageValue
     variable = stress_xx
     outputs = gnuplot
-    execute_on = 'TIMESTEP_END'
+    execute_on = 'INITIAL TIMESTEP_END'
   [../]
   [./Es_xx]
     type = ElementAverageValue
     variable = elastic_strain_xx
     outputs = gnuplot
-    execute_on = 'TIMESTEP_END'
+    execute_on = 'INITIAL TIMESTEP_END'
   [../]
   [./Ts_xx]
     type = ElementAverageValue
     variable = total_strain_xx
     outputs = gnuplot
-    execute_on = 'TIMESTEP_END'
+    execute_on = 'INITIAL TIMESTEP_END'
   [../]
   [./Ep_xx]
     type = ElementAverageValue
     variable = eq_plastic_strain
     outputs = gnuplot
-    execute_on = 'TIMESTEP_END'
+    execute_on = 'INITIAL TIMESTEP_END'
   [../]
 []
 
@@ -172,8 +174,7 @@
 []
 
 [Outputs]
-  execute_on = 'timestep_end'
-  file_base = mfront_oedometer_0
+  file_base = mfront_oedometer_20
   print_linear_residuals = false
   [./perf_graph]
     type = PerfGraphOutput
@@ -181,6 +182,7 @@
     heaviest_sections = 3
     execute_on = 'FINAL'
   [../]
-  exodus = false
+  exodus = true
   gnuplot = true
+  execute_on = 'INITIAL TIMESTEP_END'
 []
