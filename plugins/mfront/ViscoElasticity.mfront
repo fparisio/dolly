@@ -1,0 +1,75 @@
+@DSL       Implicit;
+@Behaviour ViscoElasticity;
+@Algorithm NewtonRaphson_NumericalJacobian;
+
+@Brick StandardElasticity;
+
+@Epsilon 1.e-16;
+@Theta 1;
+
+@MaterialProperty stress young;
+young.setGlossaryName("YoungModulus");
+@MaterialProperty real nu;
+nu.setGlossaryName("PoissonRatio");
+@MaterialProperty real Qact;
+Qact.setEntryName("ActivationEnthalpy");
+@MaterialProperty real A_creep;
+A_creep.setEntryName("PreExponentialConstant");
+@MaterialProperty real n_creep;
+n_creep.setEntryName("Exponent");
+@MaterialProperty real r_const;
+r_const.setEntryName("RConstant");
+
+@StateVariable real vp;
+vp.setGlossaryName("EquivalentViscoplasticStrain");
+
+@LocalVariable stress lambda;
+@LocalVariable stress mu;
+
+@ModellingHypotheses {".+"};
+
+@InitLocalVariables
+{
+  lambda = computeLambda(young, nu);
+  mu = computeMu(young, nu);
+}
+
+@Predictor{
+  const auto sigel = computeElasticPrediction();
+}
+
+@PredictionOperator{
+  static_cast<void>(smt);
+  Dt = lambda*Stensor4::IxI()+2*mu*Stensor4::Id();
+}
+
+@Integrator
+{
+  Stensor nvp = Stensor(0.);
+  Stensor s_dev = deviator(sig);
+  const stress seq = sqrt(2 ⋅ (s_dev | s_dev) / 3);
+  if (seq > 1e-15){
+    nvp = s_dev / seq;
+  }
+  if (T > 0){
+    fvp -= dt * A_creep * exp(-Qact / r_const / T) * pow(seq, n_creep);
+  }else{
+    fvp -= dt * A_creep * pow(seq, n_creep);
+  }
+  feel += dvp * nvp;
+}
+
+@TangentOperator
+{
+  if ((smt == ELASTIC) || (smt == SECANTOPERATOR)){
+    computeElasticStiffness<N, Type>::exe(Dt, lambda, mu);
+  }else if (smt == CONSISTENTTANGENTOPERATOR){
+    StiffnessTensor De;
+    Stensor4 Je;
+    computeElasticStiffness<N, Type>::exe(De, lambda, mu);
+    getPartialJacobianInvert(Je);
+    Dt = De * Je;
+  }else{
+    return false;
+  }
+}

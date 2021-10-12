@@ -1,0 +1,79 @@
+@DSL Implicit;
+@Behaviour NonAssociativeDruckerPrager;
+
+@Author Thomas Helfer (modified by Caiua);
+@Description{
+  A simple implementation of a perfect
+  plasticity behaviour using the
+  Drucker-Prager yield criterion.
+};
+
+@Brick StandardElasticity;
+
+@Epsilon 1.e-16;
+@Theta 1;
+
+// Young's modulus
+@MaterialProperty stress young;
+young.setGlossaryName("YoungModulus");
+// Poisson Ratio
+@MaterialProperty real nu;
+nu.setGlossaryName("PoissonRatio");
+// Material cohesion
+@MaterialProperty real d;
+// Friction angle
+@MaterialProperty real beta;
+// Dilation angle
+@MaterialProperty real phi;
+
+@StateVariable strain p;
+p.setGlossaryName("EquivalentPlasticStrain");
+
+@LocalVariable stress mu;
+@LocalVariable stress lambda;
+@LocalVariable bool bpl;
+@LocalVariable real tgb,tgp;
+
+@ModellingHypotheses {".+"};
+
+@InitLocalVariables {
+  lambda = computeLambda(young, nu);
+  mu = computeMu(young,nu);
+  tgb = tan(beta);
+  tgp = tan(phi);
+}
+
+@Predictor{
+  const auto sigel = computeElasticPrediction();
+  const auto prel = trace(sigel) / 3;
+  const auto qel = sigmaeq(sigel);
+  bpl = (qel + prel * tgb - d > 0);
+}
+
+@PredictionOperator{
+  static_cast<void>(smt);
+  Dt = lambda*Stensor4::IxI()+2*mu*Stensor4::Id();
+}
+
+@Integrator {
+  constexpr const auto id = Stensor::Id();
+  constexpr const auto M = Stensor4::M();
+  const auto seps =  real(1.e-12) * young;
+  if (bpl) {
+    const auto pr = trace(sig)/3;
+    const auto q = sigmaeq(sig);
+    const auto iq = 1/max(q,seps);
+    const auto nq = eval(3 * deviator(sig) * (iq / 2));
+    const auto dnq = eval((M - (nq ^ nq)) * iq);
+    const auto n1   = eval(nq+(tgb/3)*id);
+    const auto n2   = eval(nq+(tgp/3)*id);
+    feel += dp*n2;
+    fp = (q+pr*tgb-d)/young;
+    // jacobian
+    dfeel_ddeel += 2*mu*theta*dp*dnq;
+    dfeel_ddp = n2;
+    dfp_ddp = 0;
+    dfp_ddeel = (2*mu*theta/young)*n1+(tgb*theta*lambda/young)*id;
+//    dfp_ddeel = (2*mu*theta/young)*nq+(tgb*theta*lambda/young)*id;
+	}
+}

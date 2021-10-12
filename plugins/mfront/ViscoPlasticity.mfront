@@ -1,0 +1,151 @@
+@DSL Implicit;
+@Behaviour ViscoPlasticity;
+@Author Mauro Cacace(GFZ Potsdam);
+@Algorithm NewtonRaphson_NumericalJacobian;
+
+@Description{A simple implementation of a Maxwell rheology coupled to perfect plasticity
+                 nonassociative Drucker Prager.};
+
+@Brick StandardElasticity;
+@Epsilon 1.e-14;
+@Theta 1;
+
+@ModellingHypotheses{".+"};
+
+@MaterialProperty stress young;
+young.setGlossaryName("YoungModulus");
+@MaterialProperty real nu;
+nu.setGlossaryName("PoissonRatio");
+
+@MaterialProperty real Qact;
+Qact.setEntryName("ActivationEnthalpy");
+@MaterialProperty real A_creep;
+A_creep.setEntryName("PreExponentialConstant");
+@MaterialProperty real n_creep;
+n_creep.setEntryName("Exponent");
+@MaterialProperty real r_const;
+r_const.setEntryName("RConstant");
+
+@MaterialProperty real d;
+d.setEntryName("Cohesion");
+@MaterialProperty real beta;
+beta.setEntryName("FrictionAngle");
+@MaterialProperty real phi;
+phi.setEntryName("DilationAngle");
+
+@StateVariable strain vp;
+vp.setGlossaryName("EquivalentViscoplasticStrain");
+@StateVariable strain p;
+p.setGlossaryName("EquivalentPlasticStrain");
+
+@LocalVariable stress lambda;
+@LocalVariable stress mu;
+@LocalVariable Stensor nvp;
+@LocalVariable bool bpl;
+@LocalVariable real tgb, tgp;
+
+@InitLocalVariables
+{
+  lambda = computeLambda(young, nu);
+  mu = computeMu(young, nu);
+  tgb = tan(beta);
+  tgp = tan(phi);
+  nvp = Stensor(real(0));
+}
+
+@Predictor
+{
+  const auto sigel = computeElasticPrediction();
+  // use the viscoelastic correction as predictor
+  const Stensor correction_vp = 3. * mu * vp * nvp;
+  const auto sve = sigel - correction_vp;
+  const auto prel = trace(sve) / 3;
+  const auto qel = sigmaeq(sve);
+  bpl = (qel + prel * tgb - d > 0);
+}
+
+@PredictionOperator
+{
+  static_cast<void>(smt);
+  Dt = lambda * Stensor4::IxI() + 2 * mu * Stensor4::Id();
+}
+
+@Integrator
+{
+  // creep
+  Stensor s_dev = deviator(sig);
+  const stress seq = sqrt(2 ⋅ (s_dev | s_dev) / 3);
+  real aux;
+  if (T > 0)
+  {
+    aux = exp(-Qact / r_const / T);
+  }
+  else
+  {
+    aux = 1.;
+  }
+  const auto tmp = A_creep * pow(seq, n_creep - 1.) * aux;
+  // const auto df_dseq = n_creep * tmp;
+  if (seq > 1e-15)
+  {
+    nvp = s_dev / seq;
+  }
+  fvp -= tmp * seq * dt;
+  // plastic
+  constexpr const auto id = Stensor::Id();
+  // constexpr const auto M = Stensor4::M();
+  const auto seps = real(1.e-12) * young;
+  const auto pr = trace(sig) / 3;
+  const auto q = sigmaeq(sig);
+  const auto iq = 1 / max(q, seps);
+  bpl = (q + pr * tgb - d > 0);
+  if (bpl)
+  {
+    const auto nq = eval(3 * deviator(sig) * (iq / 2));
+    // const auto dnq = eval((M - (nq ^ nq)) * iq);
+    // const auto n1 = eval(nq + (tgb / 3) * id);
+    const auto n2 = eval(nq + (tgp / 3) * id);
+    const auto yield = (q + pr * tgb - d);
+    // implicit system
+    fp = yield / young;
+    // feel += dvp*nvp + dp*n2;
+    feel = deel - deto + dvp * nvp + dp * n2;
+    // jacobian
+    /*dfeel_ddeel += 2*mu*theta*dp*dnq+2*mu*theta*iq*(Stensor4::M()-(nvp^nvp));
+    dfeel_ddp    = n2;
+    dfeel_ddvp   = nvp;
+    dfp_ddp      = 0;
+    dfp_ddeel    = (2*mu*theta/young)*n1+(tgb*theta*lambda/young)*id;
+    dfvp_ddeel   = -2*mu*theta*df_dseq*dt*nvp;*/
+  }
+  else
+  {
+    // implicit system
+    // feel += dvp*nvp;
+    feel = deel - deto + dvp * nvp;
+    // jacobian
+    /*dfeel_ddeel += 2*mu*theta*iq*(Stensor4::M()-(nvp^nvp));
+    dfeel_ddvp   = nvp;
+    dfvp_ddeel   = -2*mu*theta*df_dseq*dt*nvp;*/
+  }
+}
+
+@TangentOperator
+{
+  if ((smt == ELASTIC) || (smt == SECANTOPERATOR))
+  {
+    computeElasticStiffness<N, Type>::exe(Dt, lambda, mu);
+  }
+  else if (smt == CONSISTENTTANGENTOPERATOR)
+  {
+    StiffnessTensor De;
+    Stensor4 Je;
+    computeElasticStiffness<N, Type>::exe(De, lambda, mu);
+    getPartialJacobianInvert(Je);
+    Dt = De * Je;
+  }
+  else
+  {
+    return false;
+  }
+}

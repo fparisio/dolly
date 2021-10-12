@@ -1,0 +1,64 @@
+@DSL       Implicit;
+@Behaviour ImplicitNorton;
+@Author    Thomas Helfer - modified;
+@Date      24/11/2016;
+@Algorithm NewtonRaphson;
+
+@Brick StandardElasticity;
+@Epsilon 1.e-16;
+@Theta 1;
+
+@ModellingHypotheses {".+"};
+
+@MaterialProperty stress young;
+young.setGlossaryName("YoungModulus");
+@MaterialProperty real nu;
+nu.setGlossaryName("PoissonRatio");
+@MaterialProperty real Qact;
+Qact.setEntryName("ActivationEnthalpy");
+@MaterialProperty real A_creep;
+A_creep.setEntryName("PreExponentialConstant");
+@MaterialProperty real n_creep;
+n_creep.setEntryName("Exponent");
+@MaterialProperty real r_const;
+r_const.setEntryName("RConstant");
+
+@StateVariable strain p;
+p.setGlossaryName("EquivalentViscoplasticStrain");
+
+@LocalVariable stress lambda;
+@LocalVariable stress mu;
+@LocalVariable Stensor n;
+
+@InitLocalVariables
+{
+  lambda = computeLambda(young, nu);
+  mu = computeMu(young, nu);
+  const auto sigel = computeElasticPrediction();
+  n = Stensor(0.);
+}
+
+@Integrator{
+  stress iseq = 0.;
+  Stensor s_dev = deviator(sig);
+  const stress seq = sqrt(2 ⋅ (s_dev | s_dev) / 3);
+  real aux;
+  if (T>0){
+    aux = exp(-Qact/r_const/T);
+  }else{
+    aux = 1.;
+  }
+  const auto tmp = A_creep*pow(seq,n_creep-1.)*aux;
+  const auto df_dseq = n_creep*tmp;
+  if (seq>1e-15){
+    n = s_dev/seq;
+    iseq = 1/seq;
+  }
+  // implicit system
+  feel += dp*n;
+  fp   -= tmp*seq*dt;
+  // jacobian
+  dfeel_ddeel += 2.*mu*theta*dp*iseq*(Stensor4::M()-(n^n));
+  dfeel_ddp    = n;
+  dfp_ddeel    = -2*mu*theta*df_dseq*dt*n;
+}

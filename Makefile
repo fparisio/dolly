@@ -38,12 +38,12 @@ LEVEL_SET                   := no
 MISC                        := no
 NAVIER_STOKES               := no
 PHASE_FIELD                 := no
-POROUS_FLOW                 := no
+POROUS_FLOW                 := yes
 RAY_TRACING                 := no
 RDG                         := no
 RICHARDS                    := no
 STOCHASTIC_TOOLS            := no
-TENSOR_MECHANICS            := no
+TENSOR_MECHANICS            := yes
 XFEM                        := no
 
 include $(MOOSE_DIR)/modules/modules.mk
@@ -58,3 +58,6 @@ include            $(FRAMEWORK_DIR)/app.mk
 
 ###############################################################################
 # Additional special case targets should be added here
+# gmis interface support for mfront
+ADDITIONAL_CPPFLAGS += -I/home/cacace/snippets/MFrontGenericInterfaceSupport/include/
+ADDITIONAL_LIBS += -L/home/cacace/snippets/MFrontGenericInterfaceSupport/build/src/ -lMFrontGenericInterface
