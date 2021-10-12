@@ -183,6 +183,6 @@
     execute_on = 'FINAL'
   [../]
   exodus = true
-  # gnuplot = true
+  gnuplot = true
   execute_on = 'INITIAL TIMESTEP_END'
 []

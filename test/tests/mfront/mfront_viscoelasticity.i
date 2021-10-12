@@ -171,6 +171,6 @@
   execute_on = 'INITIAL TIMESTEP_END'
   print_linear_residuals = false
   perf_graph = true
-  # gnuplot = true
+  gnuplot = true
   exodus = true
 []
