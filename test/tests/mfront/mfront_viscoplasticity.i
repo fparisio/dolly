@@ -5,8 +5,8 @@
 [Mesh]
   type = GeneratedMesh
   dim = 2
-  nx = 10
-  ny = 10
+  nx = 2
+  ny = 2
   xmin = 0
   xmax = 1
   ymin = 0
@@ -118,7 +118,7 @@
     poisson_ratio = 0.495
     phi_angle = 0
     psi_angle = 0
-    coh = 20e7
+    coh = 26e7
     convert_to_radians = true
     A_creep = 5.0e-23
     n_creep = 1.0
@@ -177,14 +177,16 @@
   solve_type = 'NEWTON'
   start_time = 0.0
   end_time = 3.1536e+13
-  num_steps = 5000
+  num_steps = 100 #5000
   automatic_scaling = true
   compute_scaling_once = false
 []
 
 [Outputs]
+  file_base = mfront_viscoplasticity
   execute_on = 'INITIAL TIMESTEP_END'
   print_linear_residuals = false
   perf_graph = true
   gnuplot = true
+  exodus = true
 []

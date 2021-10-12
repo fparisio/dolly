@@ -11,7 +11,7 @@
     dim = 1
     xmin = -0.5
     xmax = 0.5
-    nx = 10
+    nx = 2
   []
 []
 
@@ -161,6 +161,7 @@
 
 [Outputs]
   exodus = true
+  file_base = mfront_elastic_1D
   print_linear_residuals = false
   [perf_graph]
     type = PerfGraphOutput

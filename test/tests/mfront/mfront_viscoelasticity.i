@@ -8,8 +8,8 @@
 [Mesh]
   type = GeneratedMesh
   dim = 2
-  nx = 10
-  ny = 10
+  nx = 2
+  ny = 2
   xmin = 0
   xmax = 1
   ymin = 0
@@ -161,14 +161,16 @@
   solve_type = 'NEWTON'
   start_time = 0.0
   end_time = 3.1536e+13
-  num_steps = 500 #5000
+  num_steps = 100 #5000
   automatic_scaling = true
   compute_scaling_once = false
 []
 
 [Outputs]
+  file_base = mfront_viscoelasticity
   execute_on = 'INITIAL TIMESTEP_END'
   print_linear_residuals = false
   perf_graph = true
   gnuplot = true
+  exodus = true
 []

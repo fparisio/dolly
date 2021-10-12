@@ -15,9 +15,9 @@
     ymax = 0.5
     zmin = -0.5
     zmax = 0.5
-    nx = 10
-    ny = 10
-    nz = 10
+    nx = 2
+    ny = 2
+    nz = 2
   []
 []
 
@@ -179,6 +179,7 @@
 
 [Outputs]
   exodus = true
+  file_base = mfront_elastic_3D
   print_linear_residuals = false
   [perf_graph]
     type = PerfGraphOutput

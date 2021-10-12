@@ -13,8 +13,8 @@
     xmax = 0.5
     ymin = -0.5
     ymax = 0.5
-    nx = 10
-    ny = 10
+    nx = 2
+    ny = 2
   []
 []
 
@@ -170,6 +170,7 @@
 
 [Outputs]
   exodus = true
+  file_base = mfront_elastic_2D
   print_linear_residuals = false
   [perf_graph]
     type = PerfGraphOutput

@@ -1,5 +1,35 @@
 [Tests]
   design = 'MFront.md'
+  [elastic_1D]
+    type = 'Exodiff'
+    input = 'mfront_elastic_1D.i'
+    exodiff = 'mfront_elastic_1D.e'
+    requirement = 'Simple linear elastic problem with Mfront - 1D case small strain.'
+  []
+  [elastic_2D]
+    type = 'Exodiff'
+    input = 'mfront_elastic_2D.i'
+    exodiff = 'mfront_elastic_2D.e'
+    requirement = 'Simple linear elastic problem with Mfront - 2D case small strain.'
+  []
+  [elastic_3D]
+    type = 'Exodiff'
+    input = 'mfront_elastic_3D.i'
+    exodiff = 'mfront_elastic_3D.e'
+    requirement = 'Simple linear elastic problem with Mfront - 3D case small strain.'
+  []
+  [viscoelastic]
+    type = 'Exodiff'
+    input = 'mfront_viscoelasticity.i'
+    exodiff = 'mfront_viscoelasticity.e'
+    requirement = 'quasi-static stress build-up for a Maxwell rheology - you can cross check against analytical solution: sigma = 2 * eps_dot * eta * (1 - exp(-G*t/eta)).'
+  []
+  [viscoplastic]
+    type = 'Exodiff'
+    input = 'mfront_viscoplasticity.i'
+    exodiff = 'mfront_viscoplasticity.e'
+    requirement = 'visco-plastic implementation of the viscoelastic test.'
+  []
   [oedometer_dilation_0]
     type = 'Exodiff'
     input = 'mfront_oedometer_0.i'
@@ -17,5 +47,11 @@
     input = 'mfront_oedometer_20.i'
     exodiff = 'mfront_oedometer_20.e'
     requirement = 'Plastic oedometer - non associative Drucker-Prager - dilation angle=20(same as friction angle).'
+  []
+  [axial_cyclic_loading]
+    type = 'Exodiff'
+    input = 'mfront_axial_cyclic_loading.i'
+    exodiff = 'mfront_axial_cyclic_loading.e'
+    requirement = 'axial loading (cyclic) - no confinement - non associative Drucker-Prager material behaviour - unloading cycles are half of the loading cycles in loading velocity.'
   []
 []

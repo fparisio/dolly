@@ -5,9 +5,9 @@
 [Mesh]
   type = GeneratedMesh
   dim = 3
-  nx = 10
-  ny = 10
-  nz = 20
+  nx = 2
+  ny = 2
+  nz = 2
   xmin = 0
   xmax = 0.5
   ymin = 0
@@ -184,13 +184,15 @@
   automatic_scaling = true
   start_time = 0.0
   end_time = 210.0
-  dt = 2.0
+  dt = 5.0
   nl_abs_tol = 1e-15
 []
 
 [Outputs]
-  execute_on = 'timestep_end'
+  file_base = mfront_axial_cyclic_loading
+  execute_on = 'initial timestep_end'
   print_linear_residuals = false
   perf_graph = true
   gnuplot = true
+  exodus = true
 []
