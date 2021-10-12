@@ -193,6 +193,6 @@
   execute_on = 'initial timestep_end'
   print_linear_residuals = false
   perf_graph = true
-  gnuplot = true
+  # gnuplot = true
   exodus = true
 []
